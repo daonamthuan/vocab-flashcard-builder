@@ -1,13 +1,13 @@
-"""Xuất base-vocab.json thành CSV để import vào Anki.
+"""Export base-vocab.json to CSV files that can be imported into Anki.
 
-Mỗi bộ từ vựng (phần tử trong mảng) có một thư mục riêng:
-    output/<tên bộ>/<tên bộ>.csv
+Each vocabulary set (one array element) gets its own folder:
+    output/<set name>/<set name>.csv
 """
 import json, csv, os, re
 
-# ====== Cấu hình ======
-NOTE_NEWLINE = "<br>"   # thay xuống dòng trong ghi chú. Đặt "\n" nếu muốn giữ nguyên
-ADD_HEADER = False      # ghi dòng tiêu đề; để False khi import vào Anki
+# ====== Settings ======
+NOTE_NEWLINE = "<br>"   # replaces line breaks in notes. Use "\n" to keep them
+ADD_HEADER = False      # write a header row; keep False for Anki import
 # ======================
 
 HEADER = ["en", "ipa", "pos", "vi",
@@ -23,7 +23,7 @@ with open(os.path.join(ROOT, "ipa.json"), encoding="utf-8") as f:
 
 
 def safe_name(name):
-    """Tên thư mục/file hợp lệ trên Windows: bỏ ký tự cấm, bỏ dấu chấm/khoảng trắng cuối."""
+    """Make a valid Windows folder/file name: replace reserved characters, strip trailing dots/spaces."""
     name = re.sub(r'[<>:"/\\|?*]', "_", name).strip().rstrip(". ")
     return name or "untitled"
 
@@ -48,8 +48,8 @@ missing_all = []
 used_names = set()
 
 for item in sets:
-    name = safe_name(item.get("name") or f"trunk_tuan_{item.get('week', 'x')}")
-    # tránh trùng tên thư mục do khác biệt hoa/thường hoặc ký tự bị thay thế
+    name = safe_name(item.get("name") or f"set_week_{item.get('week', 'x')}")
+    # avoid folder clashes caused by letter case or replaced characters
     base, n = name, 2
     while name.lower() in used_names:
         name = f"{base} ({n})"
@@ -70,7 +70,7 @@ for item in sets:
         rows.append([
             w["en"],
             ipa,
-            w["pos"],              # giữ nguyên ký hiệu gốc: n, v, adj, adv, prep...
+            w["pos"],              # keep the original tag: n, v, adj, adv, prep...
             w.get("vi", ""),
             w.get("formula", ""),
             w.get("colloc", ""),
@@ -85,7 +85,7 @@ for item in sets:
         if ADD_HEADER:
             wr.writerow(HEADER)
         wr.writerows(rows)
-    print(f"{name}: {len(rows)} từ -> {path}")
+    print(f"{name}: {len(rows)} words -> {path}")
 
 if missing_all:
-    print("\nChưa có phiên âm:", ", ".join(missing_all))
+    print("\nMissing IPA:", ", ".join(missing_all))

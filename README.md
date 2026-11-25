@@ -1,66 +1,66 @@
 # vocab-flashcards
 
-Bộ công cụ tạo flashcard từ vựng IELTS dưới dạng file CSV để import vào [Anki](https://apps.ankiweb.net/).
+A small toolkit that builds English vocabulary flashcards (Vietnamese meanings) as CSV files for [Anki](https://apps.ankiweb.net/).
 
-- `script.py` xuất từng bộ từ vựng trong `base-vocab.json` thành `output/<tên bộ>/<tên bộ>.csv`, mỗi bộ một thư mục con.
-- Skill Claude Code `ielts-vocab-csv` tạo bộ từ vựng từ ảnh chụp một bài tập Reading/Listening, chỉ lấy các từ được bôi vàng.
+- `script.py` exports every vocabulary set in `base-vocab.json` to `output/<set name>/<set name>.csv`, one subfolder per set.
+- The Claude Code skill `vocab-csv` builds a set from a screenshot of a Reading/Listening exercise, using only the words highlighted in yellow.
 
-Phiên âm dùng **IPA Anh–Anh** (British, RP), lấy từ `ipa.json`.
+Pronunciation uses **British (RP) IPA**, taken from `ipa.json`.
 
-## Cấu trúc
+## Structure
 
 ```
 .
-├── script.py                 # base-vocab.json -> output/<tên bộ>/<tên bộ>.csv
-├── base-vocab.json           # mảng các bộ từ vựng (name, words...)
-├── ipa.json                  # từ điển phiên âm IPA Anh–Anh ("từ" hoặc "từ|pos" -> "/ipa/")
-├── .claude/skills/ielts-vocab-csv/
-│   ├── SKILL.md              # quy tắc tạo bộ từ vựng từ bài tập
-│   └── scripts/build_csv.py  # JSON -> CSV đúng định dạng
-└── output/                   # mỗi bộ một thư mục con, không đưa lên git
-    └── <tên bộ>/<tên bộ>.csv
+├── script.py                 # base-vocab.json -> output/<set name>/<set name>.csv
+├── base-vocab.json           # array of vocabulary sets (name, words...)
+├── ipa.json                  # British IPA dictionary ("word" or "word|pos" -> "/ipa/")
+├── .claude/skills/vocab-csv/
+│   ├── SKILL.md              # rules for building a set from an exercise
+│   └── scripts/build_csv.py  # JSON -> CSV in the expected format
+└── output/                   # one subfolder per set, not committed
+    └── <set name>/<set name>.csv
 ```
 
-## Định dạng CSV
+## CSV format
 
-UTF-8 có BOM, không có dòng tiêu đề, 7 cột:
+UTF-8 with BOM, no header row, 7 columns:
 
-| Cột | Ý nghĩa |
+| Column | Meaning |
 |---|---|
-| `en` | Từ / cụm từ (dạng gốc) |
-| `ipa` | Phiên âm IPA Anh–Anh |
-| `pos` | Loại từ: `n`, `v`, `adj`, `adv`, `phr v`, `idiom`... |
-| `vi` | Nghĩa tiếng Việt. Nếu nghĩa trong bài khác nghĩa thông thường: `{nghĩa trong bài}, {các nghĩa thường dùng}` |
-| `formula` | Cấu trúc ngữ pháp (`pay off`, `stash sth (away)`) |
-| `colloc` | Collocation thông dụng |
-| `note` | Giải thích + ví dụ, xuống dòng bằng `<br>` |
+| `en` | Word or phrase (base form) |
+| `ipa` | British IPA |
+| `pos` | Part of speech: `n`, `v`, `adj`, `adv`, `phr v`, `idiom`... |
+| `vi` | Vietnamese meaning. If the meaning in the passage differs from the usual one: `{meaning in passage}, {common meanings}` |
+| `formula` | Grammar pattern (`pay off`, `stash sth (away)`) |
+| `colloc` | Common collocations |
+| `note` | Explanation and examples, line breaks as `<br>` |
 
-## Sử dụng
+## Usage
 
-Yêu cầu Python 3.8+ (không cần thư viện ngoài).
+Requires Python 3.8+ (no third-party packages).
 
-### Xuất bộ từ theo tuần
+### Export all vocabulary sets
 
 ```bash
 python script.py
 ```
 
-### Tạo bộ từ vựng từ một bài tập (Claude Code)
+### Build a set from an exercise (Claude Code)
 
-Mở thư mục này bằng Claude Code, gửi ảnh chụp bài tập có các từ bôi vàng và gõ:
+Open this folder in Claude Code, attach screenshots of the exercise with highlighted words and type:
 
 ```
-/ielts-vocab-csv
+/vocab-csv
 ```
 
-Skill sẽ viết dữ liệu ra JSON rồi gọi:
+The skill writes the data to JSON and then runs:
 
 ```bash
-python .claude/skills/ielts-vocab-csv/scripts/build_csv.py <input.json> "output/<Tên bộ>/<Tên bộ>.csv"
+python .claude/skills/vocab-csv/scripts/build_csv.py <input.json> "output/<Set name>/<Set name>.csv"
 ```
 
-Script tự điền IPA từ `ipa.json` khi ô `ipa` để trống, chuẩn hoá `/.../`, đổi xuống dòng thành `<br>` và bỏ dòng trùng.
+The script fills empty `ipa` cells from `ipa.json`, normalises `/.../`, turns line breaks into `<br>` and drops duplicate rows.
 
-### Import vào Anki
+### Import into Anki
 
-**File → Import**, chọn file CSV, chọn dấu phân tách *Comma*, bật *Allow HTML in fields*, rồi gán 7 cột vào các field của note type.
+**File → Import**, choose the CSV file, set the separator to *Comma*, enable *Allow HTML in fields*, then map the 7 columns to the fields of your note type.

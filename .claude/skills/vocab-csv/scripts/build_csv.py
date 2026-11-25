@@ -1,4 +1,4 @@
-"""Build an Anki-style vocab CSV (same format as output/trunk_tuan_*.csv).
+"""Build an Anki-style vocab CSV (same format as output/<set name>/<set name>.csv).
 
 Usage: python build_csv.py <input.json> <output.csv> [--ipa path/to/ipa.json] [--header]
 
